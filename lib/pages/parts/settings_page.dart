@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:smart_light/enums/app_routes.dart';
+import 'package:smart_light/service/shared_preferences_service.dart';
 
 class SettingsPage extends StatefulWidget {
   @override
@@ -7,6 +9,15 @@ class SettingsPage extends StatefulWidget {
 }
 
 class SettingsPageState extends State<SettingsPage> {
+
+  SharedPreferencesService _sharedPreferencesService;
+
+  @override
+  void initState() {
+    super.initState();
+    _sharedPreferencesService = SharedPreferencesService.getInstance();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,7 +46,10 @@ class SettingsPageState extends State<SettingsPage> {
             ListTile(
               // contentPadding: EdgeInsets.symmetric(horizontal: 25),
               leading: TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  _sharedPreferencesService.clear();
+                  Navigator.of(context).popAndPushNamed(AppRoutes.HOME);
+                },
                 child: Text(
                   "Вихід",
                   style: TextStyle(

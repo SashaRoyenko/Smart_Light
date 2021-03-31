@@ -1,11 +1,35 @@
 class TimerSetting {
   DateTime _time;
   bool _isTurnOn;
+  DateTime _validityTime;
 
+  set timeFromDuration(Duration duration) {
+    _time = DateTime.fromMillisecondsSinceEpoch(duration.inMilliseconds,
+        isUtc: true);
+    if (_validityTime == null) {
+      _validityTime = DateTime.now().add(Duration(
+        hours: _time.hour,
+        minutes: _time.minute,
+        seconds: _time.second,
+      ));
+    }
+  }
 
-  TimerSetting();
+  static TimerSetting fromJson(Map<String, dynamic> json) {
+    TimerSetting result = TimerSetting()
+      ..isTurnOn = json['isTurnOn']
+      .._validityTimeFromJson = DateTime.fromMillisecondsSinceEpoch(
+          int.parse(json['validityTime'].toString()))
+      .._timeFromJson = DateTime.fromMillisecondsSinceEpoch(
+          int.parse(json['time'].toString()));
+    return result;
+  }
 
-  TimerSetting.name(this._time, this._isTurnOn);
+  Map<String, dynamic> toJson() => {
+        'time': time.millisecondsSinceEpoch,
+        'validityTime': validityTime.millisecondsSinceEpoch,
+        'isTurnOn': isTurnOn,
+      };
 
   bool get isTurnOn => _isTurnOn;
 
@@ -13,29 +37,27 @@ class TimerSetting {
     _isTurnOn = value;
   }
 
+  DateTime get validityTime => _validityTime;
+
   DateTime get time => _time;
 
   set time(DateTime value) {
     _time = value;
+
+    if (_validityTime == null) {
+      _validityTime = DateTime.now().add(Duration(
+        hours: _time.hour,
+        minutes: _time.minute,
+        seconds: _time.second,
+      ));
+    }
   }
 
-  set timeFromDuration(Duration duration) {
-    _time = DateTime.fromMillisecondsSinceEpoch(duration.inMilliseconds);
+  set _timeFromJson(DateTime value) {
+    _time = value;
   }
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is TimerSetting &&
-          runtimeType == other.runtimeType &&
-          _time == other._time &&
-          _isTurnOn == other._isTurnOn;
-
-  @override
-  int get hashCode => _time.hashCode ^ _isTurnOn.hashCode;
-
-  @override
-  String toString() {
-    return 'Timer{_duration: $_time, _isTurnOn: $_isTurnOn}';
+  set _validityTimeFromJson(DateTime value) {
+    _validityTime = value;
   }
 }

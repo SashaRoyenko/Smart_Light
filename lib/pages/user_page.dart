@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:smart_light/pages/authoriztion/login_page.dart';
 import 'package:smart_light/pages/parts/settings_page.dart';
 
 class UserPage extends StatefulWidget {
@@ -8,9 +7,8 @@ class UserPage extends StatefulWidget {
 }
 
 class UserPageState extends State<UserPage> {
-  bool isUserPresent = false;
   @override
   Widget build(BuildContext context) {
-    return isUserPresent ? SettingsPage() : LoginPage();
+    return SettingsPage();
   }
 }

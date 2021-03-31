@@ -1,69 +1,64 @@
+import 'dart:convert';
+
 import 'package:smart_light/entity/LightSetting.dart';
 import 'package:smart_light/entity/Option.dart';
 
 class User {
-  String _email;
-  String _firstName;
-  String _lastName;
-  String _password;
-  LightSetting _lightSetting;
+  String email;
+  String firstName;
+  String lastName;
+  LightSetting lightSetting;
   List<Option> options;
+  int id;
 
-  User(this._email, this._firstName, this._lastName, this._password,
-      this._lightSetting);
-
-  User.name(this._email, this._firstName, this._lastName, this._password,
-      this._lightSetting);
-
-  LightSetting get lightSetting => _lightSetting;
-
-  set lightSetting(LightSetting value) {
-    _lightSetting = value;
-  }
-
-  String get password => _password;
-
-  set password(String value) {
-    _password = value;
-  }
-
-  String get lastName => _lastName;
-
-  set lastName(String value) {
-    _lastName = value;
-  }
-
-  String get firstName => _firstName;
-
-  set firstName(String value) {
-    _firstName = value;
-  }
-
-  String get email => _email;
-
-  set email(String value) {
-    _email = value;
-  }
-
-  @override
-  String toString() {
-    return 'User{_email: $_email, _firstName: $_firstName, _lastName: $_lastName, _password: $_password}';
-  }
+  User.name(
+      {this.email,
+      this.firstName,
+      this.lastName,
+      this.lightSetting,
+      this.options,
+      this.id});
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is User &&
           runtimeType == other.runtimeType &&
-          _email == other._email &&
-          _firstName == other._firstName &&
-          _lastName == other._lastName &&
-          _password == other._password;
+          email == other.email &&
+          firstName == other.firstName &&
+          lastName == other.lastName &&
+          lightSetting == other.lightSetting &&
+          options == other.options &&
+          id == other.id;
 
   @override
   int get hashCode =>
-      _email.hashCode ^
-      _firstName.hashCode ^
-      _lastName.hashCode ^
-      _password.hashCode;
+      email.hashCode ^
+      firstName.hashCode ^
+      lastName.hashCode ^
+      lightSetting.hashCode ^
+      options.hashCode ^
+      id.hashCode;
+
+  @override
+  String toString() {
+    return 'User{email: $email, firstName: $firstName, lastName: $lastName, lightSetting: $lightSetting, options: $options, id: $id}';
+  }
+
+  static User fromJson(Map<String, dynamic> json) {
+    List<Option> options =
+        (json['options'] as List).map((e) => Option.fromJson(e)).toList();
+
+    return User.name(
+      id: json['id'],
+      email: json['email'],
+      options: options,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'email': email,
+        'options': options.map((e) => e.toJson()).toList(),
+      };
 }

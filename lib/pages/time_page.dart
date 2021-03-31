@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:smart_light/entity/AlarmSettings.dart';
 import 'package:smart_light/entity/Timer.dart';
 import 'package:smart_light/pages/parts/dialogs/dialogs_factory.dart';
+import 'package:smart_light/service/shared_preferences_service.dart';
 
 class TimePage extends StatefulWidget {
   @override
@@ -14,18 +17,26 @@ class _TimePageState extends State<TimePage>
     with SingleTickerProviderStateMixin {
   int _tabIndex = 0;
   TabController _tabController;
+  SharedPreferencesService _sharedPreferencesService =
+      SharedPreferencesService.getInstance();
   List<TimerSetting> _timers = [];
   List<AlarmSettings> _alarms = [];
+  List<Timer> startedTimers = [];
 
   @override
   void initState() {
+    super.initState();
+    initTimer();
     _tabController = TabController(length: 2, vsync: this);
+
+    loadAlarmSettingsFromSharedPreferences();
+    loadTimerSettingsFromSharedPreferences();
+    initTimer();
 
     _tabController.addListener(() {
       setState(() {
         _tabIndex = _tabController.index;
       });
-      print("Selected Index: " + _tabController.index.toString());
     });
   }
 
@@ -109,12 +120,15 @@ class _TimePageState extends State<TimePage>
             DialogsFactory.showTimerDialog(context, (timerSetting) {
               setState(() {
                 _timers.add(timerSetting);
+                _startTimer(timerSetting);
               });
             });
           } else {
             DialogsFactory.showAlarmDialog(context, (alarmSettings) {
               setState(() {
                 _alarms.add(alarmSettings);
+                var json = _alarms.map((e) => e.toJson()).toList();
+                _sharedPreferencesService.putObject("alarm", json);
               });
             });
           }
@@ -132,5 +146,68 @@ class _TimePageState extends State<TimePage>
   void dispose() {
     super.dispose();
     _tabController.dispose();
+    startedTimers.forEach((element) => element.cancel());
+    saveTimerSettingsToSharedPreferences();
+  }
+
+  void initTimer() {
+    setState(() {
+      _timers.forEach((element) {
+        _startTimer(element);
+      });
+    });
+  }
+
+  void _startTimer(TimerSetting element) {
+    Timer timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      setState(() {
+        if (element.time.second > 0 ||
+            element.time.minute > 0 ||
+            element.time.hour > 0) {
+          element.time = element.time.add(Duration(seconds: -1));
+        } else {
+          _timers.remove(element);
+          timer.cancel();
+          saveTimerSettingsToSharedPreferences();
+        }
+      });
+    });
+    startedTimers.add(timer);
+  }
+
+  void saveTimerSettingsToSharedPreferences() {
+    var json = _timers.map((e) => e.toJson()).toList();
+    _sharedPreferencesService.putObject("timer", json);
+  }
+
+  void loadAlarmSettingsFromSharedPreferences() {
+    var sharedPreferencesAlarm = _sharedPreferencesService.getObjects("alarm");
+    _alarms = sharedPreferencesAlarm == null
+        ? []
+        : sharedPreferencesAlarm
+            .map<AlarmSettings>((e) => AlarmSettings.fromJson(e))
+            .toList();
+  }
+
+  void loadTimerSettingsFromSharedPreferences() {
+    var sharedPreferencesTimer = _sharedPreferencesService.getObjects("timer");
+    _timers = sharedPreferencesTimer == null
+        ? []
+        : sharedPreferencesTimer.map<TimerSetting>((e) {
+            var timerSettings = TimerSetting.fromJson(e);
+
+            DateTime currentTime = DateTime.now();
+            DateTime validityTime = timerSettings.validityTime;
+
+            DateTime currentTimerValue =
+                timerSettings.time = validityTime.subtract(Duration(
+              hours: currentTime.hour,
+              minutes: currentTime.minute,
+              seconds: currentTime.second,
+            ));
+            timerSettings.time = currentTimerValue;
+
+            return timerSettings;
+          }).toList();
   }
 }

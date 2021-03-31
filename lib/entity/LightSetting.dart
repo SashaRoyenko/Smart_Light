@@ -1,47 +1,31 @@
 import 'dart:ui';
 
+import 'package:smart_light/utils/util_service.dart';
+
 class LightSetting {
-  Color _color;
-  int _lightTemperature;
-  int _brightness;
+  Color color;
+  int id;
+  int lightTemperature;
+  int brightness;
 
-  LightSetting(this._color, this._lightTemperature, this._brightness);
+  LightSetting();
 
-  LightSetting.name(this._color, this._lightTemperature, this._brightness);
+  LightSetting.name(
+      {this.color, this.id, this.lightTemperature, this.brightness});
 
-  int get brightness => _brightness;
-
-  set brightness(int value) {
-    _brightness = value;
+  static LightSetting fromJson(Map<String, dynamic> json) {
+    return LightSetting.name(
+      id: json['id'],
+      color: Color(int.parse(json['color'].toString())),
+      lightTemperature: json['lightTemperature'],
+      brightness: json['brightness'],
+    );
   }
 
-  int get lightTemperature => _lightTemperature;
-
-  set lightTemperature(int value) {
-    _lightTemperature = value;
-  }
-
-  Color get color => _color;
-
-  set color(Color value) {
-    _color = value;
-  }
-
-  @override
-  String toString() {
-    return 'LightSettings{_color: $_color, _lightTemperature: $_lightTemperature, _brightness: $_brightness}';
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is LightSetting &&
-          runtimeType == other.runtimeType &&
-          _color == other._color &&
-          _lightTemperature == other._lightTemperature &&
-          _brightness == other._brightness;
-
-  @override
-  int get hashCode =>
-      _color.hashCode ^ _lightTemperature.hashCode ^ _brightness.hashCode;
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'color': color.value,
+        'lightTemperature': lightTemperature,
+        'brightness': brightness,
+      };
 }

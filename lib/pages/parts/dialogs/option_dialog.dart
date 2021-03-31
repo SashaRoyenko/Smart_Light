@@ -6,6 +6,7 @@ class OptionDialog {
 
   OptionDialog(this._context, this._onSubmit);
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  String _optionName ="";
 
   void showOptionDialog() {
     showDialog(
@@ -23,6 +24,7 @@ class OptionDialog {
                 if (value == null || value.isEmpty) {
                   return 'Поле не може бути пустим';
                 }
+                _optionName = value;
                 return null;
               },
             ),
@@ -39,8 +41,7 @@ class OptionDialog {
                   // _onSubmit();
                   // the form is invalid.
                   if (_formKey.currentState.validate()) {
-                    // Process data.
-                    Navigator.pop(context);
+                    _onSubmit(_optionName);
                   }
                 })
           ],

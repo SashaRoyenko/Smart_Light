@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_circle_color_picker/flutter_circle_color_picker.dart';
+import 'package:smart_light/entity/LightSetting.dart';
+import 'package:smart_light/entity/Option.dart';
 import 'package:smart_light/enums/app_routes.dart';
 import 'package:smart_light/pages/parts/dialogs/dialogs_factory.dart';
+import 'package:smart_light/service/smart_light_service.dart';
 
 class LightPage extends StatefulWidget {
   @override
@@ -11,6 +14,9 @@ class LightPage extends StatefulWidget {
 class _LightPageState extends State<LightPage> {
   double _currentTemperatureValue = 20;
   double _currentBrightnessValue = 20;
+  final SmartLightService _smartLightService = new SmartLightService();
+  LightSetting _lightSetting = LightSetting.name(
+      color: Colors.amber, lightTemperature: 30, brightness: 70);
 
   @override
   Widget build(BuildContext context) {
@@ -24,9 +30,7 @@ class _LightPageState extends State<LightPage> {
                 Icons.favorite_border,
                 size: 35,
               ),
-              onPressed: () => {
-                DialogsFactory.showSaveOptionDialog(context, (value) => null)
-              },
+              onPressed: () => _saveOption(),
             ),
           )
         ],
@@ -37,8 +41,8 @@ class _LightPageState extends State<LightPage> {
             child: Padding(
               padding: const EdgeInsets.only(bottom: 200),
               child: CircleColorPicker(
-                initialColor: Colors.blue,
-                onChanged: (color) => print(color),
+                initialColor: _lightSetting.color,
+                onChanged: (color) => _lightSetting.color = color,
                 size: const Size(300, 300),
                 strokeWidth: 18,
                 thumbSize: 36,
@@ -56,13 +60,14 @@ class _LightPageState extends State<LightPage> {
                 SliderTheme(
                   data: SliderThemeData(),
                   child: Slider(
-                    value: _currentTemperatureValue,
+                    value: _lightSetting.lightTemperature.toDouble(),
                     min: 0,
                     max: 100,
                     divisions: 20,
-                    label: _currentTemperatureValue.round().toString(),
+                    label: _lightSetting.lightTemperature.toString(),
                     onChanged: (val) {
-                      _currentTemperatureValue = val;
+                      _lightSetting.lightTemperature = val.toInt();
+                      // _currentTemperatureValue = val;
                       setState(() {});
                     },
                   ),
@@ -87,13 +92,13 @@ class _LightPageState extends State<LightPage> {
                 SliderTheme(
                   data: SliderThemeData(),
                   child: Slider(
-                    value: _currentBrightnessValue,
+                    value: _lightSetting.brightness.toDouble(),
                     min: 0,
                     max: 100,
                     divisions: 20,
-                    label: _currentBrightnessValue.round().toString(),
+                    label: _lightSetting.brightness.round().toString(),
                     onChanged: (val) {
-                      _currentBrightnessValue = val;
+                      _lightSetting.brightness = val.toInt();
                       setState(() {});
                     },
                   ),
@@ -117,5 +122,17 @@ class _LightPageState extends State<LightPage> {
         child: Icon(Icons.format_list_bulleted_sharp, size: 35),
       ),
     );
+  }
+
+  void _saveOption() {
+    DialogsFactory.showSaveOptionDialog(context, (value) async {
+      Option option = Option()
+        ..name = value
+        ..lightSetting = _lightSetting;
+      var response = await _smartLightService.saveOption(option);
+      if (response.statusCode == 200) {
+        Navigator.pop(context);
+      }
+    });
   }
 }

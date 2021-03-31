@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:smart_light/entity/CreateAccountDto.dart';
+import 'package:smart_light/service/smart_light_service.dart';
 
 class RegisterPage extends StatefulWidget {
   @override
@@ -8,8 +12,20 @@ class RegisterPage extends StatefulWidget {
 
 class RegisterPageState extends State<RegisterPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  String firstPassword;
-  String secondPassword;
+  final SmartLightService smartLightService = SmartLightService();
+
+  // static SharedPreferencesService _sharedPreferencesService;
+  String _email;
+  String _firstPassword;
+  String _secondPassword;
+  String _exceptionMessage = '';
+
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _sharedPreferencesService = SharedPreferencesService.getInstance();
+  // }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,10 +35,13 @@ class RegisterPageState extends State<RegisterPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(
-              Icons.account_circle,
-              size: 65,
-              color: Colors.blue,
+            Hero(
+              tag: 'authorization_icon',
+              child: Icon(
+                Icons.account_circle,
+                size: 65,
+                color: Colors.blue,
+              ),
             ),
             Form(
               key: _formKey,
@@ -39,6 +58,7 @@ class RegisterPageState extends State<RegisterPage> {
                         if (value == null || value.isEmpty) {
                           return 'Поле не може бути пустим';
                         }
+                        _email = value;
                         return null;
                       },
                     ),
@@ -55,7 +75,7 @@ class RegisterPageState extends State<RegisterPage> {
                         if (value == null || value.isEmpty) {
                           return 'Поле не може бути пустим';
                         }
-                        firstPassword = value;
+                        _firstPassword = value;
                         return null;
                       },
                     ),
@@ -70,15 +90,22 @@ class RegisterPageState extends State<RegisterPage> {
                       if (value == null || value.isEmpty) {
                         return 'Поле не може бути пустим';
                       }
-                      secondPassword = value;
-                      if(firstPassword != secondPassword) {
+                      _secondPassword = value;
+                      if (_firstPassword != _secondPassword) {
                         return 'Паролі не співпадають';
                       }
                       return null;
                     },
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Text(
+                      _exceptionMessage,
+                      style: TextStyle(color: Colors.red, fontSize: 16),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 15),
                     child: ElevatedButton(
                       child: Text(
                         'Зареєструватися',
@@ -88,6 +115,7 @@ class RegisterPageState extends State<RegisterPage> {
                       ),
                       onPressed: () {
                         if (_formKey.currentState.validate()) {
+                          _register();
                         }
                       },
                       style: ButtonStyle(
@@ -106,5 +134,19 @@ class RegisterPageState extends State<RegisterPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _register() async {
+    CreateAccountDto createAccountDto = CreateAccountDto()
+      ..email = _email
+      ..password = _secondPassword;
+    var response = await smartLightService.createAccount(createAccountDto);
+    if (response.statusCode == 200) {
+      Navigator.of(context).pop();
+    } else {
+      setState(() {
+        _exceptionMessage = jsonDecode(response.body)['message'];
+      });
+    }
   }
 }
