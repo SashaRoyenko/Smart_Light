@@ -13,10 +13,10 @@ class AlarmDialog {
       _context,
       showTitleActions: true,
       onConfirm: (date) {
-        print(date);
         AlarmSettings alarmSettings = AlarmSettings()
-        ..isActive = true
-        ..time = date;
+          ..isActive = true
+          ..time = date;
+
         _onSubmit(alarmSettings);
       },
       currentTime: DateTime.utc(DateTime.now().year),

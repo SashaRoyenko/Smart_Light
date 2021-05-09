@@ -30,7 +30,9 @@ class SettingsPageState extends State<SettingsPage> {
           children: [
             Card(
               child: TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.of(context).pushNamed(AppRoutes.BLUETOOTH_DEVICES);
+                },
                 child: ListTile(
                   contentPadding: EdgeInsets.symmetric(horizontal: 20),
                   leading: Text(
