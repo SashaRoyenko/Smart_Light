@@ -2,10 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:smart_light/entity/AlarmSettings.dart';
 import 'package:smart_light/entity/Timer.dart';
 import 'package:smart_light/pages/parts/dialogs/dialogs_factory.dart';
+import 'package:smart_light/service/arduino/bluetooth_command_service.dart';
+import 'package:smart_light/service/bluetooth_connection_service.dart';
 import 'package:smart_light/service/shared_preferences_service.dart';
 
 class TimePage extends StatefulWidget {
@@ -23,6 +27,10 @@ class _TimePageState extends State<TimePage>
   List<AlarmSettings> _alarms = [];
   List<Timer> startedTimers = [];
 
+  BluetoothConnectionService _bluetoothService =
+      BluetoothConnectionService.instance();
+  BluetoothCommandService _bluetoothCommandService;
+
   @override
   void initState() {
     super.initState();
@@ -38,6 +46,21 @@ class _TimePageState extends State<TimePage>
         _tabIndex = _tabController.index;
       });
     });
+
+    _bluetoothService = BluetoothConnectionService.instance();
+    BluetoothConnection connection = _bluetoothService.connection;
+    if (connection == null) {
+      Fluttertoast.showToast(
+          msg: "Не вдалося під'єднатися!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 2,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0);
+    } else {
+      _bluetoothCommandService = BluetoothCommandService(connection);
+    }
   }
 
   @override
@@ -62,31 +85,95 @@ class _TimePageState extends State<TimePage>
       body: TabBarView(
         controller: _tabController,
         children: [
-          ListView.builder(
-            itemCount: _timers.length,
-            itemBuilder: (context, index) => Container(
-              child: Card(
-                child: ListTile(
-                  contentPadding: EdgeInsets.symmetric(horizontal: 15),
-                  title: Text(
-                    _timers[index].isTurnOn
-                        ? 'Час залишилося до увімкнення:'
-                        : 'Час залишилося до відключення: ',
-                    style: TextStyle(
-                      fontSize: 16,
-                    ),
+          // ListView.builder(
+          //   itemCount: _timers.length,
+          //   itemBuilder: (context, index) => Container(
+          //     child: Card(
+          //       child: ListTile(
+          //         contentPadding: EdgeInsets.symmetric(horizontal: 15),
+          //         title: Text(
+          //           _timers[index].isTurnOn
+          //               ? 'Час залишилося до увімкнення:'
+          //               : 'Час залишилося до відключення: ',
+          //           style: TextStyle(
+          //             fontSize: 16,
+          //           ),
+          //         ),
+          //         trailing: Text(
+          //           DateFormat('HH:mm:ss').format(_timers[index].time),
+          //           style: TextStyle(
+          //             fontWeight: FontWeight.bold,
+          //             fontSize: 18,
+          //           ),
+          //         ),
+          //       ),
+          //     ),
+          //   ),
+          // ),
+          _timers.length > 0
+              ? Container(
+                  child: Column(
+                    // mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(top: 120),
+                      ),
+                      Text(
+                        _timers[0].isTurnOn
+                            ? 'Часу залишилося до увімкнення:'
+                            : 'Часу залишилося до відключення: ',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 22,
+                        ),
+                      ),
+                      Padding(padding: EdgeInsets.symmetric(vertical: 50)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            _timers[0].time.hour.toString(),
+                            style: TextStyle(
+                              fontSize: 60,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            ' : ',
+                            style: TextStyle(
+                              fontSize: 60,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            _timers[0].time.minute.toString(),
+                            style: TextStyle(
+                              fontSize: 60,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            ' : ',
+                            style: TextStyle(
+                              fontSize: 60,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            _timers[0].time.second.toString(),
+                            style: TextStyle(
+                              fontSize: 60,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
                   ),
-                  trailing: Text(
-                    DateFormat('HH:mm:ss').format(_timers[index].time),
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
+                )
+              : Container(),
           ListView.builder(
             itemCount: _alarms.length,
             itemBuilder: (context, index) => Container(
@@ -105,6 +192,11 @@ class _TimePageState extends State<TimePage>
                     onChanged: (bool value) {
                       setState(() {
                         _alarms[index].isActive = value;
+                        if (value) {
+                          _bluetoothCommandService.alarm(_alarms[index].time);
+                        } else {
+                          _bluetoothCommandService.stopAlarm();
+                        }
                       });
                     },
                   ),
@@ -119,16 +211,27 @@ class _TimePageState extends State<TimePage>
           if (_tabIndex == 0) {
             DialogsFactory.showTimerDialog(context, (timerSetting) {
               setState(() {
-                _timers.add(timerSetting);
+                if (_timers.length > 0) {
+                  _timers[0] = timerSetting;
+                } else {
+                  _timers.add(timerSetting);
+                }
                 _startTimer(timerSetting);
+                _bluetoothCommandService.timer(
+                    timerSetting.time, timerSetting.isTurnOn ? 1 : 0);
               });
             });
           } else {
             DialogsFactory.showAlarmDialog(context, (alarmSettings) {
               setState(() {
-                _alarms.add(alarmSettings);
+                if (_alarms.length > 0) {
+                  _alarms[0] = alarmSettings;
+                } else {
+                  _alarms.add(alarmSettings);
+                }
                 var json = _alarms.map((e) => e.toJson()).toList();
                 _sharedPreferencesService.putObject("alarm", json);
+                _bluetoothCommandService.alarm(alarmSettings.time);
               });
             });
           }

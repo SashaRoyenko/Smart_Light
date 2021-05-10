@@ -12,8 +12,7 @@ class PowerPage extends StatefulWidget {
 }
 
 class _PowerPageState extends State<PowerPage> {
-  BluetoothConnectionService _bluetoothService =
-      BluetoothConnectionService.instance();
+  BluetoothConnectionService _bluetoothService;
   BluetoothCommandService _bluetoothCommandService;
 
   @override

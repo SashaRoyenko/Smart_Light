@@ -10,8 +10,18 @@ class BluetoothCommandService implements CommandService {
   BluetoothCommandService(this._connection);
 
   @override
-  void alarm() {
-    // TODO: implement alarm
+  void alarm(DateTime time) {
+    String command =
+        "alarm_on " + time.hour.toString() + " " + time.minute.toString();
+
+    _connection.output.add(utf8.encode(command + "\r\n"));
+    _connection.output.allSent;
+  }
+
+  @override
+  void stopAlarm() {
+    _connection.output.add(utf8.encode("alarm_off " + "\r\n"));
+    _connection.output.allSent;
   }
 
   @override
@@ -34,7 +44,17 @@ class BluetoothCommandService implements CommandService {
   }
 
   @override
-  void timer() {
-    // TODO: implement timer
+  void timer(DateTime time, int isOn) {
+    String command = "timer " +
+        time.hour.toString() +
+        " " +
+        time.minute.toString() +
+        " " +
+        time.second.toString() +
+        " " +
+        isOn.toString();
+
+    _connection.output.add(utf8.encode(command + "\r\n"));
+    _connection.output.allSent;
   }
 }
