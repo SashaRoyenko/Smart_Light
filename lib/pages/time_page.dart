@@ -268,21 +268,24 @@ class _TimePageState extends State<TimePage>
     var sharedPreferencesTimer = _sharedPreferencesService.getObjects("timer");
     _timers = sharedPreferencesTimer == null
         ? []
-        : sharedPreferencesTimer.map<TimerSetting>((e) {
-            var timerSettings = TimerSetting.fromJson(e);
+        : sharedPreferencesTimer
+            .map<TimerSetting>((e) {
+              var timerSettings = TimerSetting.fromJson(e);
 
-            DateTime currentTime = DateTime.now();
-            DateTime validityTime = timerSettings.validityTime;
+              DateTime currentTime = DateTime.now();
+              DateTime validityTime = timerSettings.validityTime;
 
-            DateTime currentTimerValue =
-                timerSettings.time = validityTime.subtract(Duration(
-              hours: currentTime.hour,
-              minutes: currentTime.minute,
-              seconds: currentTime.second,
-            ));
-            timerSettings.time = currentTimerValue;
+              DateTime currentTimerValue =
+                  timerSettings.time = validityTime.subtract(Duration(
+                hours: currentTime.hour,
+                minutes: currentTime.minute,
+                seconds: currentTime.second,
+              ));
+              timerSettings.time = currentTimerValue;
 
-            return timerSettings;
-          }).toList();
+              return timerSettings;
+            })
+            .where((element) => element.time.day >= DateTime.now().day)
+            .toList();
   }
 }

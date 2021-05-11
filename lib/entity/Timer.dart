@@ -19,9 +19,9 @@ class TimerSetting {
     TimerSetting result = TimerSetting()
       ..isTurnOn = json['isTurnOn']
       .._validityTimeFromJson = DateTime.fromMillisecondsSinceEpoch(
-          int.parse(json['validityTime'].toString()))
+          int.parse(json['validityTime'].toString()), isUtc: false)
       .._timeFromJson = DateTime.fromMillisecondsSinceEpoch(
-          int.parse(json['time'].toString()));
+          int.parse(json['time'].toString()), isUtc: false);
     return result;
   }
 

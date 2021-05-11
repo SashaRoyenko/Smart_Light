@@ -5,7 +5,7 @@ class AlarmSettings {
   static AlarmSettings fromJson(Map<String, dynamic> json) => AlarmSettings()
     ..isActive = json['isActive']
     ..time =
-        DateTime.fromMillisecondsSinceEpoch(int.parse(json['time'].toString()));
+        DateTime.fromMillisecondsSinceEpoch(int.parse(json['time'].toString()), isUtc: true);
 
   Map<String, dynamic> toJson() => {
         'time': time.millisecondsSinceEpoch,
