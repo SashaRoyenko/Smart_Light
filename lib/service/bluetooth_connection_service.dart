@@ -1,9 +1,12 @@
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
+import 'package:smart_light/service/shared_preferences_service.dart';
 
 class BluetoothConnectionService {
   BluetoothDevice _bluetoothDevice;
   BluetoothConnection _connection;
   static BluetoothConnectionService _bluetoothConnectionService;
+  SharedPreferencesService _sharedPreferencesService =
+      SharedPreferencesService.getInstance();
 
   BluetoothConnectionService._();
 
@@ -16,7 +19,28 @@ class BluetoothConnectionService {
         _connection.close();
       }
       _bluetoothDevice = device;
-      _connection = await BluetoothConnection.toAddress(device.address);
+      _connection = await BluetoothConnection.toAddress(device.address).onError(
+          (error, stackTrace) async =>
+              await BluetoothConnection.toAddress(device.address));
+      _sharedPreferencesService.putObject("bluetooth_device", device.toMap());
+    }
+    return _connection;
+  }
+
+  Future<BluetoothConnection> connectToSavedDevice() async {
+    Map<String, dynamic> deviceParams =
+        _sharedPreferencesService.getObject("bluetooth_device");
+    if (deviceParams != null && deviceParams.isNotEmpty) {
+      BluetoothDevice device = BluetoothDevice(
+        name: deviceParams['name'].toString(),
+        address: deviceParams['address'].toString(),
+        type: BluetoothDeviceType.fromUnderlyingValue(
+            int.parse(deviceParams['type'].toString())),
+        isConnected: deviceParams['isConnected'].toString() == "true",
+        bondState:
+            BluetoothBondState.fromString(deviceParams['bondState'].toString()),
+      );
+      return await connect(device);
     }
     return _connection;
   }

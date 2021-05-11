@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:smart_light/service/arduino/CommandService.dart';
 
 class BluetoothCommandService implements CommandService {
@@ -14,14 +15,12 @@ class BluetoothCommandService implements CommandService {
     String command =
         "alarm_on " + time.hour.toString() + " " + time.minute.toString();
 
-    _connection.output.add(utf8.encode(command + "\r\n"));
-    _connection.output.allSent;
+    _executeCommand(command);
   }
 
   @override
   void stopAlarm() {
-    _connection.output.add(utf8.encode("alarm_off " + "\r\n"));
-    _connection.output.allSent;
+    _executeCommand("alarm_off ");
   }
 
   @override
@@ -33,14 +32,12 @@ class BluetoothCommandService implements CommandService {
         " " +
         color.blue.toString() +
         "\n";
-    _connection.output.add(utf8.encode(command + "\r\n"));
-    _connection.output.allSent;
+    _executeCommand(command);
   }
 
   @override
   void power() {
-    _connection.output.add(utf8.encode("power " + "\r\n"));
-    _connection.output.allSent;
+    _executeCommand("power ");
   }
 
   @override
@@ -54,7 +51,22 @@ class BluetoothCommandService implements CommandService {
         " " +
         isOn.toString();
 
-    _connection.output.add(utf8.encode(command + "\r\n"));
-    _connection.output.allSent;
+    _executeCommand(command);
+  }
+
+  void _executeCommand(String command) {
+    if (_connection != null && _connection.isConnected) {
+      _connection.output.add(utf8.encode(command + "\r\n"));
+      _connection.output.allSent;
+    } else {
+      Fluttertoast.showToast(
+          msg: "Не вдалося під'єднатися!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 2,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
   }
 }

@@ -2,15 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:smart_light/entity/AlarmSettings.dart';
 import 'package:smart_light/entity/Timer.dart';
 import 'package:smart_light/pages/parts/dialogs/dialogs_factory.dart';
 import 'package:smart_light/service/arduino/bluetooth_command_service.dart';
-import 'package:smart_light/service/bluetooth_connection_service.dart';
 import 'package:smart_light/service/shared_preferences_service.dart';
+import 'package:smart_light/service/util_service.dart';
 
 class TimePage extends StatefulWidget {
   @override
@@ -27,9 +25,7 @@ class _TimePageState extends State<TimePage>
   List<AlarmSettings> _alarms = [];
   List<Timer> startedTimers = [];
 
-  BluetoothConnectionService _bluetoothService =
-      BluetoothConnectionService.instance();
-  BluetoothCommandService _bluetoothCommandService;
+  Future<BluetoothCommandService> _bluetoothCommandService;
 
   @override
   void initState() {
@@ -46,25 +42,28 @@ class _TimePageState extends State<TimePage>
         _tabIndex = _tabController.index;
       });
     });
-
-    _bluetoothService = BluetoothConnectionService.instance();
-    BluetoothConnection connection = _bluetoothService.connection;
-    if (connection == null) {
-      Fluttertoast.showToast(
-          msg: "Не вдалося під'єднатися!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 2,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-          fontSize: 16.0);
-    } else {
-      _bluetoothCommandService = BluetoothCommandService(connection);
-    }
+    _bluetoothCommandService = UtilService.connectToBluetooth();
   }
 
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder<BluetoothCommandService>(
+      future: _bluetoothCommandService,
+      builder: (context, snapshot) {
+        return snapshot.hasData
+            ? _mainWidget(snapshot.data)
+            : Center(
+                child: SizedBox(
+                  child: CircularProgressIndicator(),
+                  width: 60,
+                  height: 60,
+                ),
+              );
+      },
+    );
+  }
+
+  Widget _mainWidget(BluetoothCommandService data) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Режим увімкнення'),
@@ -85,35 +84,9 @@ class _TimePageState extends State<TimePage>
       body: TabBarView(
         controller: _tabController,
         children: [
-          // ListView.builder(
-          //   itemCount: _timers.length,
-          //   itemBuilder: (context, index) => Container(
-          //     child: Card(
-          //       child: ListTile(
-          //         contentPadding: EdgeInsets.symmetric(horizontal: 15),
-          //         title: Text(
-          //           _timers[index].isTurnOn
-          //               ? 'Час залишилося до увімкнення:'
-          //               : 'Час залишилося до відключення: ',
-          //           style: TextStyle(
-          //             fontSize: 16,
-          //           ),
-          //         ),
-          //         trailing: Text(
-          //           DateFormat('HH:mm:ss').format(_timers[index].time),
-          //           style: TextStyle(
-          //             fontWeight: FontWeight.bold,
-          //             fontSize: 18,
-          //           ),
-          //         ),
-          //       ),
-          //     ),
-          //   ),
-          // ),
           _timers.length > 0
               ? Container(
                   child: Column(
-                    // mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Padding(
@@ -193,9 +166,9 @@ class _TimePageState extends State<TimePage>
                       setState(() {
                         _alarms[index].isActive = value;
                         if (value) {
-                          _bluetoothCommandService.alarm(_alarms[index].time);
+                          data.alarm(_alarms[index].time);
                         } else {
-                          _bluetoothCommandService.stopAlarm();
+                          data.stopAlarm();
                         }
                       });
                     },
@@ -217,8 +190,7 @@ class _TimePageState extends State<TimePage>
                   _timers.add(timerSetting);
                 }
                 _startTimer(timerSetting);
-                _bluetoothCommandService.timer(
-                    timerSetting.time, timerSetting.isTurnOn ? 1 : 0);
+                data.timer(timerSetting.time, timerSetting.isTurnOn ? 1 : 0);
               });
             });
           } else {
@@ -231,7 +203,7 @@ class _TimePageState extends State<TimePage>
                 }
                 var json = _alarms.map((e) => e.toJson()).toList();
                 _sharedPreferencesService.putObject("alarm", json);
-                _bluetoothCommandService.alarm(alarmSettings.time);
+                data.alarm(alarmSettings.time);
               });
             });
           }

@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:flutter_circle_color_picker/flutter_circle_color_picker.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:smart_light/entity/LightSetting.dart';
 import 'package:smart_light/entity/Option.dart';
 import 'package:smart_light/enums/app_routes.dart';
 import 'package:smart_light/pages/parts/dialogs/dialogs_factory.dart';
 import 'package:smart_light/service/arduino/ArduinoSocketService.dart';
 import 'package:smart_light/service/arduino/bluetooth_command_service.dart';
-import 'package:smart_light/service/bluetooth_connection_service.dart';
 import 'package:smart_light/service/smart_light_service.dart';
+import 'package:smart_light/service/util_service.dart';
 
 class LightPage extends StatefulWidget {
   @override
@@ -22,27 +20,12 @@ class _LightPageState extends State<LightPage> {
       color: Colors.amber, lightTemperature: 30, brightness: 70);
   ArduinoSocketService _arduinoSocketService = ArduinoSocketService();
 
-  BluetoothConnectionService _bluetoothService =
-      BluetoothConnectionService.instance();
-  BluetoothCommandService _bluetoothCommandService;
+  Future<BluetoothCommandService> _bluetoothCommandService;
 
   @override
   void initState() {
     super.initState();
-    _bluetoothService = BluetoothConnectionService.instance();
-    BluetoothConnection connection = _bluetoothService.connection;
-    if (connection == null) {
-      Fluttertoast.showToast(
-          msg: "Не вдалося під'єднатися!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 2,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-          fontSize: 16.0);
-    } else {
-      _bluetoothCommandService = BluetoothCommandService(connection);
-    }
+    _bluetoothCommandService = UtilService.connectToBluetooth();
   }
 
   @override
@@ -62,89 +45,103 @@ class _LightPageState extends State<LightPage> {
           )
         ],
       ),
-      body: Stack(
-        children: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 200),
-              child: CircleColorPicker(
-                initialColor: _lightSetting.color,
-                onChanged: (color) {
-                  _lightSetting.color = color;
-                  // _arduinoSocketService.sendColor(color);
-                  _bluetoothCommandService.color(color);
-                },
-                size: const Size(300, 300),
-                strokeWidth: 18,
-                thumbSize: 36,
-                textStyle: TextStyle(fontSize: 0),
-              ),
-            ),
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            // top: 150,
-            bottom: 180,
-            child: Column(
-              children: [
-                SliderTheme(
-                  data: SliderThemeData(),
-                  child: Slider(
-                    value: _lightSetting.lightTemperature.toDouble(),
-                    min: 0,
-                    max: 100,
-                    divisions: 20,
-                    label: _lightSetting.lightTemperature.toString(),
-                    onChanged: (val) {
-                      _lightSetting.lightTemperature = val.toInt();
-                      // _currentTemperatureValue = val;
-                      setState(() {});
-                    },
+      body: FutureBuilder(
+        future: _bluetoothCommandService,
+        builder: (context, snapshot) {
+          return snapshot.hasData
+              ? Stack(
+                  children: [
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 200),
+                        child: CircleColorPicker(
+                          initialColor: _lightSetting.color,
+                          onChanged: (color) {
+                            _lightSetting.color = color;
+                            // _arduinoSocketService.sendColor(color);
+                            snapshot.data.color(color);
+                          },
+                          size: const Size(300, 300),
+                          strokeWidth: 18,
+                          thumbSize: 36,
+                          textStyle: TextStyle(fontSize: 0),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      // top: 150,
+                      bottom: 180,
+                      child: Column(
+                        children: [
+                          SliderTheme(
+                            data: SliderThemeData(),
+                            child: Slider(
+                              value: _lightSetting.lightTemperature.toDouble(),
+                              min: 0,
+                              max: 100,
+                              divisions: 20,
+                              label: _lightSetting.lightTemperature.toString(),
+                              onChanged: (val) {
+                                _lightSetting.lightTemperature = val.toInt();
+                                // _currentTemperatureValue = val;
+                                setState(() {});
+                              },
+                            ),
+                          ),
+                          Text(
+                            "Яскравість",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Positioned(
+                      // top: 100,
+                      left: 0,
+                      right: 0,
+                      bottom: 100,
+                      child: Column(
+                        children: [
+                          SliderTheme(
+                            data: SliderThemeData(),
+                            child: Slider(
+                              value: _lightSetting.brightness.toDouble(),
+                              min: 0,
+                              max: 100,
+                              divisions: 20,
+                              label:
+                                  _lightSetting.brightness.round().toString(),
+                              onChanged: (val) {
+                                _lightSetting.brightness = val.toInt();
+                                setState(() {});
+                              },
+                            ),
+                          ),
+                          Text(
+                            "Температура",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                )
+              : Center(
+                  child: SizedBox(
+                    child: CircularProgressIndicator(),
+                    width: 60,
+                    height: 60,
                   ),
-                ),
-                Text(
-                  "Яскравість",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Positioned(
-            // top: 100,
-            left: 0,
-            right: 0,
-            bottom: 100,
-            child: Column(
-              children: [
-                SliderTheme(
-                  data: SliderThemeData(),
-                  child: Slider(
-                    value: _lightSetting.brightness.toDouble(),
-                    min: 0,
-                    max: 100,
-                    divisions: 20,
-                    label: _lightSetting.brightness.round().toString(),
-                    onChanged: (val) {
-                      _lightSetting.brightness = val.toInt();
-                      setState(() {});
-                    },
-                  ),
-                ),
-                Text(
-                  "Температура",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+                );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
