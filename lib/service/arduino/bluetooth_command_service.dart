@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:smart_light/service/arduino/CommandService.dart';
+import 'package:smart_light/service/util_service.dart';
 
 class BluetoothCommandService implements CommandService {
-  final BluetoothConnection _connection;
+  BluetoothConnection _connection;
 
   BluetoothCommandService(this._connection);
 
@@ -54,8 +55,11 @@ class BluetoothCommandService implements CommandService {
     _executeCommand(command);
   }
 
-  void _executeCommand(String command) {
-    if (_connection != null && _connection.isConnected) {
+  Future<void> _executeCommand(String command) async {
+    if (_connection != null) {
+      if (!_connection.isConnected) {
+        _connection = (await UtilService.connectToBluetooth())._connection;
+      }
       _connection.output.add(utf8.encode(command + "\r\n"));
       _connection.output.allSent;
     } else {
@@ -68,5 +72,33 @@ class BluetoothCommandService implements CommandService {
           textColor: Colors.white,
           fontSize: 16.0);
     }
+  }
+
+  @override
+  void brightness(int brightness) {
+    String command = "brightness $brightness";
+    _executeCommand(command);
+  }
+
+  @override
+  void auto() {
+    _executeCommand("auto ");
+  }
+
+  @override
+  void time(DateTime dateTime) {
+    String command = "time " +
+        dateTime.hour.toString() +
+        " " +
+        dateTime.minute.toString() +
+        " " +
+        dateTime.second.toString();
+
+    _executeCommand(command);
+  }
+
+  @override
+  void read() {
+    _executeCommand("read ");
   }
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:smart_light/entity/LightState.dart';
 import 'package:smart_light/enums/app_routes.dart';
 import 'package:smart_light/service/arduino/bluetooth_command_service.dart';
 import 'package:smart_light/service/util_service.dart';
@@ -24,26 +26,34 @@ class _PowerPageState extends State<PowerPage> {
       body: FutureBuilder<BluetoothCommandService>(
         future: _bluetoothCommandService,
         builder: (context, snapshot) {
-          return snapshot.hasData
-              ? Center(
-            child: IconButton(
-              iconSize: 120,
-              icon: Icon(
-                Icons.power_settings_new_rounded,
-                color: Colors.blue,
-              ),
-              onPressed: () {
-                snapshot.data.power();
+          if (snapshot.hasData) {
+            snapshot.data.read();
+          }
+          return Center(
+            child: Consumer<LightState>(
+              builder: (context, lightState, child) {
+                return IconButton(
+                  iconSize: 120,
+                  icon: Icon(
+                    Icons.power_settings_new_rounded,
+                    color: lightState.isPowerOn ? Colors.grey : Colors.blue,
+                  ),
+                  onPressed: () {
+                    snapshot.data.power();
+                  },
+                );
               },
             ),
-          )
-              : Center(
-            child: SizedBox(
-              child: CircularProgressIndicator(),
-              width: 60,
-              height: 60,
-            ),
           );
+          // } else {
+          //   return Center(
+          //     child: SizedBox(
+          //       child: CircularProgressIndicator(),
+          //       width: 60,
+          //       height: 60,
+          //     ),
+          //   );
+          // }
         },
       ),
       floatingActionButton: FloatingActionButton(

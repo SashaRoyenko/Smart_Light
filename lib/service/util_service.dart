@@ -15,7 +15,7 @@ class UtilService {
     BluetoothCommandService _bluetoothCommandService =
         BluetoothCommandService(connection);
 
-    if (connection == null) {
+    if (connection == null || !connection.isConnected) {
       // _bluetoothService.connectToSavedDevice().then((value) {
       //   connection = value;
       //   if (value != null) {

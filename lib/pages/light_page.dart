@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_circle_color_picker/flutter_circle_color_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:smart_light/entity/LightSetting.dart';
+import 'package:smart_light/entity/LightState.dart';
 import 'package:smart_light/entity/Option.dart';
 import 'package:smart_light/enums/app_routes.dart';
 import 'package:smart_light/pages/parts/dialogs/dialogs_factory.dart';
@@ -45,19 +47,23 @@ class _LightPageState extends State<LightPage> {
           )
         ],
       ),
-      body: FutureBuilder(
+      body: FutureBuilder<BluetoothCommandService>(
         future: _bluetoothCommandService,
         builder: (context, snapshot) {
-          return snapshot.hasData
-              ? Stack(
+          if (snapshot.hasData) {
+    snapshot.data.read();
+    }
+            return Consumer<LightState>(
+              builder: (context, lightState, child) {
+                return Stack(
                   children: [
                     Center(
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 200),
                         child: CircleColorPicker(
-                          initialColor: _lightSetting.color,
+                          initialColor: lightState.currentColor,
                           onChanged: (color) {
-                            _lightSetting.color = color;
+                            lightState.currentColor = color;
                             // _arduinoSocketService.sendColor(color);
                             snapshot.data.color(color);
                           },
@@ -68,6 +74,7 @@ class _LightPageState extends State<LightPage> {
                         ),
                       ),
                     ),
+
                     Positioned(
                       left: 0,
                       right: 0,
@@ -78,15 +85,17 @@ class _LightPageState extends State<LightPage> {
                           SliderTheme(
                             data: SliderThemeData(),
                             child: Slider(
-                              value: _lightSetting.lightTemperature.toDouble(),
-                              min: 0,
+                              value: lightState.brightness.toDouble(),
+                              min: 5,
                               max: 100,
-                              divisions: 20,
-                              label: _lightSetting.lightTemperature.toString(),
+                              // divisions: 21,
+                              label: lightState.brightness.toString(),
                               onChanged: (val) {
-                                _lightSetting.lightTemperature = val.toInt();
-                                // _currentTemperatureValue = val;
-                                setState(() {});
+                                lightState.brightness = val.toInt();
+                                snapshot.data.brightness(val.toInt());
+                                setState(() {
+
+                                });
                               },
                             ),
                           ),
@@ -101,46 +110,71 @@ class _LightPageState extends State<LightPage> {
                       ),
                     ),
                     Positioned(
-                      // top: 100,
                       left: 0,
                       right: 0,
-                      bottom: 100,
-                      child: Column(
-                        children: [
-                          SliderTheme(
-                            data: SliderThemeData(),
-                            child: Slider(
-                              value: _lightSetting.brightness.toDouble(),
-                              min: 0,
-                              max: 100,
-                              divisions: 20,
-                              label:
-                                  _lightSetting.brightness.round().toString(),
-                              onChanged: (val) {
-                                _lightSetting.brightness = val.toInt();
-                                setState(() {});
-                              },
-                            ),
+                      // top: 150,
+                      bottom: 80,
+                      child: MaterialButton(
+                        onPressed: () {
+                          snapshot.data.auto();
+                        },
+                        color: lightState.isAuto ? Colors.grey : Colors.blue,
+                        textColor: Colors.white,
+                        child: Text(
+                          'Авто',
+                          style: TextStyle(
+                            fontSize: 16,
                           ),
-                          Text(
-                            "Температура",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+                        ),
+                        padding: EdgeInsets.all(25),
+                        shape: CircleBorder(),
                       ),
                     ),
+                    // Positioned(
+                    //   // top: 100,
+                    //   left: 0,
+                    //   right: 0,
+                    //   bottom: 100,
+                    //   child: Column(
+                    //     children: [
+                    //       SliderTheme(
+                    //         data: SliderThemeData(),
+                    //         child: Slider(
+                    //           value: _lightSetting.brightness.toDouble(),
+                    //           min: 0,
+                    //           max: 100,
+                    //           divisions: 20,
+                    //           label:
+                    //               _lightSetting.brightness.round().toString(),
+                    //           onChanged: (val) {
+                    //             _lightSetting.brightness = val.toInt();
+                    //             setState(() {});
+                    //           },
+                    //         ),
+                    //       ),
+                    //       Text(
+                    //         "Температура",
+                    //         style: TextStyle(
+                    //           fontSize: 18,
+                    //           fontWeight: FontWeight.bold,
+                    //         ),
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
                   ],
-                )
-              : Center(
-                  child: SizedBox(
-                    child: CircularProgressIndicator(),
-                    width: 60,
-                    height: 60,
-                  ),
                 );
+              },
+            );
+          // } else {
+          //   return Center(
+          //     child: SizedBox(
+          //       child: CircularProgressIndicator(),
+          //       width: 60,
+          //       height: 60,
+          //     ),
+          //   );
+          // }
         },
       ),
       floatingActionButton: FloatingActionButton(

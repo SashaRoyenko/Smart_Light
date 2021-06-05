@@ -5,8 +5,8 @@ import 'package:smart_light/entity/AlarmSettings.dart';
 class AlarmDialog {
   final BuildContext _context;
   final Function(AlarmSettings) _onSubmit;
-
-  AlarmDialog(this._context, this._onSubmit);
+  final DateTime _currentTime;
+  AlarmDialog(this._context, this._onSubmit, this._currentTime);
 
   void showAlarmDialog() {
     DatePicker.showTimePicker(
@@ -19,7 +19,7 @@ class AlarmDialog {
 
         _onSubmit(alarmSettings);
       },
-      currentTime: DateTime.utc(DateTime.now().year),
+      currentTime: _currentTime,
       showSecondsColumn: false,
       locale: LocaleType.ru,
     );

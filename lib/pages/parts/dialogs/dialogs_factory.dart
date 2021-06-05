@@ -15,8 +15,8 @@ class DialogsFactory {
     OptionDialog(context, callback).showOptionDialog();
   }
 
-  static void showAlarmDialog(BuildContext context, Function(AlarmSettings) callback) {
-    AlarmDialog(context, callback).showAlarmDialog();
+  static void showAlarmDialog(BuildContext context, DateTime currentTime, Function(AlarmSettings) callback) {
+    AlarmDialog(context, callback, currentTime).showAlarmDialog();
   }
 
   static void showTimerDialog(BuildContext context, Function(TimerSetting) callback) {

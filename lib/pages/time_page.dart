@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:smart_light/entity/AlarmSettings.dart';
+import 'package:smart_light/entity/LightState.dart';
 import 'package:smart_light/entity/Timer.dart';
 import 'package:smart_light/pages/parts/dialogs/dialogs_factory.dart';
 import 'package:smart_light/service/arduino/bluetooth_command_service.dart';
@@ -50,15 +52,16 @@ class _TimePageState extends State<TimePage>
     return FutureBuilder<BluetoothCommandService>(
       future: _bluetoothCommandService,
       builder: (context, snapshot) {
-        return snapshot.hasData
-            ? _mainWidget(snapshot.data)
-            : Center(
-                child: SizedBox(
-                  child: CircularProgressIndicator(),
-                  width: 60,
-                  height: 60,
-                ),
-              );
+        // return snapshot.hasData
+        //     ?
+        return _mainWidget(snapshot.data);
+            // : Center(
+            //     child: SizedBox(
+            //       child: CircularProgressIndicator(),
+            //       width: 60,
+            //       height: 60,
+            //     ),
+            //   );
       },
     );
   }
@@ -81,138 +84,150 @@ class _TimePageState extends State<TimePage>
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _timers.length > 0
-              ? Container(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(top: 120),
-                      ),
-                      Text(
-                        _timers[0].isTurnOn
-                            ? 'Часу залишилося до увімкнення:'
-                            : 'Часу залишилося до відключення: ',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 22,
+      body: Consumer<LightState>(builder: (context, lightState, child) {
+        AlarmSettings alarmSettings = AlarmSettings.name(lightState.alarmTime, lightState.isAlarm);
+        if(_alarms.length < 1) {
+          _alarms.add(alarmSettings);
+        }  else {
+          _alarms[0] = alarmSettings;
+        }
+        return TabBarView(
+          controller: _tabController,
+          children: [
+            _timers.length > 0
+                ? Container(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(top: 120),
                         ),
-                      ),
-                      Padding(padding: EdgeInsets.symmetric(vertical: 50)),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                            _timers[0].time.hour.toString(),
-                            style: TextStyle(
-                              fontSize: 60,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        Text(
+                          _timers[0].isTurnOn
+                              ? 'Часу залишилося до увімкнення:'
+                              : 'Часу залишилося до відключення: ',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 22,
                           ),
-                          Text(
-                            ' : ',
-                            style: TextStyle(
-                              fontSize: 60,
-                              fontWeight: FontWeight.bold,
+                        ),
+                        Padding(padding: EdgeInsets.symmetric(vertical: 50)),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              _timers[0].time.hour.toString(),
+                              style: TextStyle(
+                                fontSize: 60,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          Text(
-                            _timers[0].time.minute.toString(),
-                            style: TextStyle(
-                              fontSize: 60,
-                              fontWeight: FontWeight.bold,
+                            Text(
+                              ' : ',
+                              style: TextStyle(
+                                fontSize: 60,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          Text(
-                            ' : ',
-                            style: TextStyle(
-                              fontSize: 60,
-                              fontWeight: FontWeight.bold,
+                            Text(
+                              _timers[0].time.minute.toString(),
+                              style: TextStyle(
+                                fontSize: 60,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          Text(
-                            _timers[0].time.second.toString(),
-                            style: TextStyle(
-                              fontSize: 60,
-                              fontWeight: FontWeight.bold,
+                            Text(
+                              ' : ',
+                              style: TextStyle(
+                                fontSize: 60,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                )
-              : Container(),
-          ListView.builder(
-            itemCount: _alarms.length,
-            itemBuilder: (context, index) => Container(
-              child: Card(
-                child: ListTile(
-                  contentPadding: EdgeInsets.symmetric(horizontal: 25),
-                  leading: Text(
-                    DateFormat('HH:mm').format(_alarms[index].time),
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                            Text(
+                              _timers[0].time.second.toString(),
+                              style: TextStyle(
+                                fontSize: 60,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        )
+                      ],
                     ),
-                  ),
-                  trailing: Switch(
-                    value: _alarms[index].isActive,
-                    onChanged: (bool value) {
-                      setState(() {
-                        _alarms[index].isActive = value;
-                        if (value) {
-                          data.alarm(_alarms[index].time);
-                        } else {
-                          data.stopAlarm();
-                        }
-                      });
-                    },
+                  )
+                : Container(),
+            ListView.builder(
+              itemCount: _alarms.length,
+              itemBuilder: (context, index) => Container(
+                child: Card(
+                  child: ListTile(
+                    contentPadding: EdgeInsets.symmetric(horizontal: 25),
+                    leading: Text(
+                      DateFormat('HH:mm').format(_alarms[index].time),
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    trailing: Switch(
+                      value: _alarms[index].isActive,
+                      onChanged: (bool value) {
+                        setState(() {
+                          _alarms[index].isActive = value;
+                          if (value) {
+                            data.alarm(_alarms[index].time);
+                          } else {
+                            data.stopAlarm();
+                          }
+                        });
+                      },
+                    ),
                   ),
                 ),
               ),
             ),
+          ],
+        );
+      }),
+      floatingActionButton:
+          Consumer<LightState>(builder: (context, lightState, child) {
+        return FloatingActionButton(
+          onPressed: () {
+            if (_tabIndex == 0) {
+              DialogsFactory.showTimerDialog(context, (timerSetting) {
+                setState(() {
+                  if (_timers.length > 0) {
+                    _timers[0] = timerSetting;
+                  } else {
+                    _timers.add(timerSetting);
+                  }
+                  _startTimer(timerSetting);
+                  data.timer(timerSetting.time, timerSetting.isTurnOn ? 1 : 0);
+                });
+              });
+            } else {
+              DialogsFactory.showAlarmDialog(context, lightState.alarmTime,
+                  (alarmSettings) {
+                setState(() {
+                  if (_alarms.length > 0) {
+                    _alarms[0] = alarmSettings;
+                  } else {
+                    _alarms.add(alarmSettings);
+                  }
+                  var json = _alarms.map((e) => e.toJson()).toList();
+                  _sharedPreferencesService.putObject("alarm", json);
+                  data.alarm(alarmSettings.time);
+                });
+              });
+            }
+          },
+          child: Icon(
+            _tabIndex == 0 ? Icons.timer : Icons.add_alarm,
+            size: 40,
           ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          if (_tabIndex == 0) {
-            DialogsFactory.showTimerDialog(context, (timerSetting) {
-              setState(() {
-                if (_timers.length > 0) {
-                  _timers[0] = timerSetting;
-                } else {
-                  _timers.add(timerSetting);
-                }
-                _startTimer(timerSetting);
-                data.timer(timerSetting.time, timerSetting.isTurnOn ? 1 : 0);
-              });
-            });
-          } else {
-            DialogsFactory.showAlarmDialog(context, (alarmSettings) {
-              setState(() {
-                if (_alarms.length > 0) {
-                  _alarms[0] = alarmSettings;
-                } else {
-                  _alarms.add(alarmSettings);
-                }
-                var json = _alarms.map((e) => e.toJson()).toList();
-                _sharedPreferencesService.putObject("alarm", json);
-                data.alarm(alarmSettings.time);
-              });
-            });
-          }
-        },
-        child: Icon(
-          _tabIndex == 0 ? Icons.timer : Icons.add_alarm,
-          size: 40,
-        ),
-      ),
+        );
+      }),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }

@@ -1,4 +1,8 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
+import 'package:smart_light/entity/LightState.dart';
 import 'package:smart_light/service/shared_preferences_service.dart';
 
 class BluetoothConnectionService {
@@ -23,6 +27,17 @@ class BluetoothConnectionService {
           (error, stackTrace) async =>
               await BluetoothConnection.toAddress(device.address));
       _sharedPreferencesService.putObject("bluetooth_device", device.toMap());
+
+      connection.input.listen((Uint8List data) {
+        String lightSettings = ascii.decode(data);
+        print('Data incoming: $lightSettings');
+        LightState lightState = LightState.getInstance();
+        lightState.updateFromString(lightSettings);
+        print(lightState);
+      }).onDone(() {
+        print('Disconnected by remote request');
+      });
+
     }
     return _connection;
   }
