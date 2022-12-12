@@ -2,9 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_light/entity/User.dart';
 import 'package:smart_light/pages/light_page.dart';
-import 'package:smart_light/pages/parts/bottom_navigation.dart';
 import 'package:smart_light/pages/power_page.dart';
 import 'package:smart_light/pages/user_page.dart';
+import 'package:smart_light/service/arduino/mqtt_command_service.dart';
 import 'package:smart_light/service/shared_preferences_service.dart';
 import 'package:smart_light/utils/route_generator.dart';
 
@@ -26,6 +26,7 @@ class HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    MQTTCommandService.instance.healthCheck();
   }
 
   @override
@@ -41,19 +42,23 @@ class HomePageState extends State<HomePage> {
             } else {
               _user = null;
             }
-            return _user != null
-                ? Scaffold(
-                    body: pages[_currentIndex],
-                    bottomNavigationBar:
-                        BottomNavigation(notifyParent: getCurrentIndex),
-                  )
-                : LoginPage(
-                    updateParentCallback: () => setState(
-                      () {
-                        _currentIndex = 0;
-                      },
-                    ),
-                  );
+            return
+                // Scaffold(
+                //   body: LightPage(),
+                // );
+                _user != null
+                    ? Scaffold(
+                        // body: pages[_currentIndex],
+                        body: LightPage(),
+                        // bottomNavigationBar:
+                        //     BottomNavigation(notifyParent: getCurrentIndex),
+                      )
+                    : LoginPage(
+                        updateParentCallback: () => setState(
+                              () {
+                                _currentIndex = 0;
+                              },
+                            ));
           } else {
             return Center(
               child: SizedBox(

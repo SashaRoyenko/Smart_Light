@@ -7,6 +7,8 @@ class User {
   String email;
   String firstName;
   String lastName;
+  int age;
+  String gender;
   LightSetting lightSetting;
   List<Option> options;
   int id;
@@ -17,7 +19,9 @@ class User {
       this.lastName,
       this.lightSetting,
       this.options,
-      this.id});
+      this.id,
+      this.age,
+      this.gender});
 
   @override
   bool operator ==(Object other) =>
@@ -52,6 +56,8 @@ class User {
     return User.name(
       id: json['id'],
       email: json['email'],
+      age: json['age'],
+      gender: json['gender'],
       options: options,
     );
   }
@@ -59,6 +65,8 @@ class User {
   Map<String, dynamic> toJson() => {
         'id': id,
         'email': email,
+        'gender': gender,
+        'age': age,
         'options': options.map((e) => e.toJson()).toList(),
       };
 }

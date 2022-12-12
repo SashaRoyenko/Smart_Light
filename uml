@@ -1,0 +1,457 @@
+@startuml
+set namespaceSeparator ::
+
+class "smart_light::entity::AlarmSettings.dart::AlarmSettings" {
+  +DateTime* time
+  +bool* isActive
+  {static} +AlarmSettings* fromJson()
+  +Map<String*, dynamic>* toJson()
+}
+
+class "smart_light::entity::CreateAccountDto.dart::CreateAccountDto" {
+  +String* email
+  +String* password
+  +Map<String*, dynamic>* toJson()
+}
+
+class "smart_light::entity::LightSetting.dart::LightSetting" {
+  +Color* color
+  +int* id
+  +int* lightTemperature
+  +int* brightness
+  {static} +LightSetting* fromJson()
+  +Map<String*, dynamic>* toJson()
+}
+
+"smart_light::entity::LightSetting.dart::LightSetting" o-- "dart::ui::Color"
+
+class "smart_light::entity::LightState.dart::LightState" {
+  +bool* isPowerOn
+  +Color* currentColor
+  +int* brightness
+  +bool* isAuto
+  +bool* isAlarm
+  +DateTime* alarmTime
+  +DateTime* currentTime
+  {static} -LightState* _lightState
+  {static} +LightState* getInstance()
+  +void updateFromString()
+  +void notify()
+  +String* toString()
+}
+
+"smart_light::entity::LightState.dart::LightState" o-- "dart::ui::Color"
+"smart_light::entity::LightState.dart::LightState" o-- "smart_light::entity::LightState.dart::LightState"
+
+class "smart_light::entity::Login.dart::Login" {
+  +String* email
+  +String* password
+}
+
+class "smart_light::entity::Option.dart::Option" {
+  +String* name
+  +LightSetting* lightSetting
+  {static} +Option* fromJson()
+  +Map<String*, dynamic>* toJson()
+}
+
+"smart_light::entity::Option.dart::Option" o-- "smart_light::entity::LightSetting.dart::LightSetting"
+
+class "smart_light::entity::Timer.dart::TimerSetting" {
+  -DateTime* _time
+  -bool* _isTurnOn
+  -DateTime* _validityTime
+  +Duration* timeFromDuration
+  +bool* isTurnOn
+  +DateTime* validityTime
+  +DateTime* time
+  -DateTime* _timeFromJson
+  -DateTime* _validityTimeFromJson
+  {static} +TimerSetting* fromJson()
+  +Map<String*, dynamic>* toJson()
+}
+
+class "smart_light::entity::User.dart::User" {
+  +String* email
+  +String* firstName
+  +String* lastName
+  +LightSetting* lightSetting
+  +List<Option*>* options
+  +int* id
+  +int* hashCode
+  +bool* ==()
+  +String* toString()
+  {static} +User* fromJson()
+  +Map<String*, dynamic>* toJson()
+}
+
+"smart_light::entity::User.dart::User" o-- "smart_light::entity::LightSetting.dart::LightSetting"
+
+class "smart_light::enums::app_routes.dart::AppRoutes" {
+  {static} +String* HOME
+  {static} +String* OPTIONS
+  {static} +String* TIME
+  {static} +String* LOGIN
+  {static} +String* REGISTER
+  {static} +String* BLUETOOTH_DEVICES
+}
+
+class "smart_light::pages::authoriztion::login_page.dart::LoginPage" {
+  +dynamic Function()* updateParentCallback
+  +State<StatefulWidget*>* createState()
+}
+
+"smart_light::pages::authoriztion::login_page.dart::LoginPage" o-- "null::dynamic Function()"
+
+class "smart_light::pages::authoriztion::login_page.dart::LoginPageState" {
+  -GlobalKey<FormState*>* _formKey
+  +SmartLightService* smartLightService
+  {static} -SharedPreferencesService* _sharedPreferencesService
+  -String* _exceptionMessage
+  -String* _email
+  -String* _password
+  +void initState()
+  +Widget* build()
+  -Future<void>* _login()
+}
+
+"smart_light::pages::authoriztion::login_page.dart::LoginPageState" o-- "flutter::src::widgets::framework.dart::GlobalKey<FormState>"
+"smart_light::pages::authoriztion::login_page.dart::LoginPageState" o-- "smart_light::service::smart_light_service.dart::SmartLightService"
+"smart_light::pages::authoriztion::login_page.dart::LoginPageState" o-- "smart_light::service::shared_preferences_service.dart::SharedPreferencesService"
+
+class "smart_light::pages::authoriztion::register_page.dart::RegisterPage" {
+  +State<StatefulWidget*>* createState()
+}
+
+class "smart_light::pages::authoriztion::register_page.dart::RegisterPageState" {
+  -GlobalKey<FormState*>* _formKey
+  +SmartLightService* smartLightService
+  -String* _email
+  -String* _firstPassword
+  -String* _secondPassword
+  -String* _exceptionMessage
+  +Widget* build()
+  -Future<void>* _register()
+}
+
+"smart_light::pages::authoriztion::register_page.dart::RegisterPageState" o-- "flutter::src::widgets::framework.dart::GlobalKey<FormState>"
+"smart_light::pages::authoriztion::register_page.dart::RegisterPageState" o-- "smart_light::service::smart_light_service.dart::SmartLightService"
+
+class "smart_light::pages::bluetooth_devices_page.dart::BluetoothDevicesPage" {
+  +State<StatefulWidget*>* createState()
+}
+
+class "smart_light::pages::bluetooth_devices_page.dart::_BluetoothDevicesPageState" {
+  +Future<List<BluetoothDevice*>*>* devices
+  +void initState()
+  +void dispose()
+  +Future<void>* initDevices()
+  +Widget* build()
+  +List<Widget*>* getDevices()
+}
+
+class "smart_light::pages::home_page.dart::HomePage" {
+  +State<StatefulWidget*>* createState()
+}
+
+class "smart_light::pages::home_page.dart::HomePageState" {
+  +List<Widget*>* pages
+  -int* _currentIndex
+  -Future<SharedPreferencesService*>* _sharedPreferencesService
+  -User* _user
+  +void initState()
+  +Widget* build()
+  +void getCurrentIndex()
+}
+
+"smart_light::pages::home_page.dart::HomePageState" o-- "smart_light::entity::User.dart::User"
+
+class "smart_light::pages::light_page.dart::LightPage" {
+  +State<StatefulWidget*>* createState()
+}
+
+class "smart_light::pages::light_page.dart::_LightPageState" {
+  -SmartLightService* _smartLightService
+  -LightSetting* _lightSetting
+  -ArduinoSocketService* _arduinoSocketService
+  -Future<BluetoothCommandService*>* _bluetoothCommandService
+  +void initState()
+  +Widget* build()
+  -void _saveOption()
+  +void dispose()
+}
+
+"smart_light::pages::light_page.dart::_LightPageState" o-- "smart_light::service::smart_light_service.dart::SmartLightService"
+"smart_light::pages::light_page.dart::_LightPageState" o-- "smart_light::entity::LightSetting.dart::LightSetting"
+"smart_light::pages::light_page.dart::_LightPageState" o-- "smart_light::service::arduino::ArduinoSocketService.dart::ArduinoSocketService"
+
+class "smart_light::pages::options_page.dart::OptionsPage" {
+  +State<StatefulWidget*>* createState()
+}
+
+class "smart_light::pages::options_page.dart::_OptionsPageState" {
+  -Future<List<Option*>*>* _options
+  -SmartLightService* _smartLightService
+  -BluetoothConnectionService* _bluetoothService
+  -BluetoothCommandService* _bluetoothCommandService
+  +void initState()
+  +Widget* build()
+  -void _getOptions()
+}
+
+"smart_light::pages::options_page.dart::_OptionsPageState" o-- "smart_light::service::smart_light_service.dart::SmartLightService"
+"smart_light::pages::options_page.dart::_OptionsPageState" o-- "smart_light::service::bluetooth_connection_service.dart::BluetoothConnectionService"
+"smart_light::pages::options_page.dart::_OptionsPageState" o-- "smart_light::service::arduino::bluetooth_command_service.dart::BluetoothCommandService"
+
+class "smart_light::pages::parts::bluetooth_device_list_entry.dart::BluetoothDeviceListEntry" {
+  +BluetoothDevice* device
+  +State<StatefulWidget*>* createState()
+}
+
+"smart_light::pages::parts::bluetooth_device_list_entry.dart::BluetoothDeviceListEntry" o-- "flutter_bluetooth_serial::flutter_bluetooth_serial.dart::BluetoothDevice"
+
+class "smart_light::pages::parts::bluetooth_device_list_entry.dart::_BluetoothDeviceListEntryState" {
+  +BluetoothConnection* connection
+  -BluetoothConnectionService* _bluetoothService
+  +bool* isOn
+  +bool* isConnected
+  +void initState()
+  +Widget* build()
+  +void connectToDevice()
+}
+
+"smart_light::pages::parts::bluetooth_device_list_entry.dart::_BluetoothDeviceListEntryState" o-- "flutter_bluetooth_serial::flutter_bluetooth_serial.dart::BluetoothConnection"
+"smart_light::pages::parts::bluetooth_device_list_entry.dart::_BluetoothDeviceListEntryState" o-- "smart_light::service::bluetooth_connection_service.dart::BluetoothConnectionService"
+
+class "smart_light::pages::parts::bottom_navigation.dart::BottomNavigation" {
+  +dynamic Function(int*)* notifyParent
+  +State<StatefulWidget*>* createState()
+}
+
+"smart_light::pages::parts::bottom_navigation.dart::BottomNavigation" o-- "null::dynamic Function(int)"
+
+class "smart_light::pages::parts::bottom_navigation.dart::_BottomNavigationState" {
+  -int* _currentIndex
+  -void _onItemTapped()
+  +Widget* build()
+}
+
+class "smart_light::pages::parts::dialogs::alarm_dialog.dart::AlarmDialog" {
+  -BuildContext* _context
+  -dynamic Function(AlarmSettings*)* _onSubmit
+  -DateTime* _currentTime
+  +void showAlarmDialog()
+}
+
+"smart_light::pages::parts::dialogs::alarm_dialog.dart::AlarmDialog" o-- "flutter::src::widgets::framework.dart::BuildContext"
+"smart_light::pages::parts::dialogs::alarm_dialog.dart::AlarmDialog" o-- "null::dynamic Function(AlarmSettings)"
+
+class "smart_light::pages::parts::dialogs::dialogs_factory.dart::DialogsFactory" {
+  -dynamic _DialogsFactory()
+  {static} +void showSaveOptionDialog()
+  {static} +void showAlarmDialog()
+  {static} +void showTimerDialog()
+}
+
+class "smart_light::pages::parts::dialogs::option_dialog.dart::OptionDialog" {
+  -BuildContext* _context
+  -dynamic Function(String*)* _onSubmit
+  -GlobalKey<FormState*>* _formKey
+  -String* _optionName
+  +void showOptionDialog()
+}
+
+"smart_light::pages::parts::dialogs::option_dialog.dart::OptionDialog" o-- "flutter::src::widgets::framework.dart::BuildContext"
+"smart_light::pages::parts::dialogs::option_dialog.dart::OptionDialog" o-- "null::dynamic Function(String)"
+"smart_light::pages::parts::dialogs::option_dialog.dart::OptionDialog" o-- "flutter::src::widgets::framework.dart::GlobalKey<FormState>"
+
+class "smart_light::pages::parts::dialogs::timer_dialog.dart::TimerDialog" {
+  -BuildContext* _context
+  -dynamic Function(TimerSetting*)* _onSubmit
+  -bool* _isTurnOn
+  -Duration* _duration
+  +void showTimerDialog()
+}
+
+"smart_light::pages::parts::dialogs::timer_dialog.dart::TimerDialog" o-- "flutter::src::widgets::framework.dart::BuildContext"
+"smart_light::pages::parts::dialogs::timer_dialog.dart::TimerDialog" o-- "null::dynamic Function(TimerSetting)"
+
+class "smart_light::pages::parts::settings_page.dart::SettingsPage" {
+  +State<StatefulWidget*>* createState()
+}
+
+class "smart_light::pages::parts::settings_page.dart::SettingsPageState" {
+  -SharedPreferencesService* _sharedPreferencesService
+  -Future<BluetoothCommandService*>* _bluetoothCommandService
+  +void initState()
+  +Widget* build()
+}
+
+"smart_light::pages::parts::settings_page.dart::SettingsPageState" o-- "smart_light::service::shared_preferences_service.dart::SharedPreferencesService"
+
+class "smart_light::pages::power_page.dart::PowerPage" {
+  +State<StatefulWidget*>* createState()
+}
+
+class "smart_light::pages::power_page.dart::_PowerPageState" {
+  -Future<BluetoothCommandService*>* _bluetoothCommandService
+  +void initState()
+  +Widget* build()
+}
+
+class "smart_light::pages::time_page.dart::TimePage" {
+  +State<StatefulWidget*>* createState()
+}
+
+class "smart_light::pages::time_page.dart::_TimePageState" {
+  -int* _tabIndex
+  -TabController* _tabController
+  -SharedPreferencesService* _sharedPreferencesService
+  -List<TimerSetting*>* _timers
+  -List<AlarmSettings*>* _alarms
+  +List<Timer*>* startedTimers
+  -Future<BluetoothCommandService*>* _bluetoothCommandService
+  +void initState()
+  +Widget* build()
+  -Widget* _mainWidget()
+  +void dispose()
+  +void initTimer()
+  -void _startTimer()
+  +void saveTimerSettingsToSharedPreferences()
+  +void loadAlarmSettingsFromSharedPreferences()
+  +void loadTimerSettingsFromSharedPreferences()
+}
+
+"smart_light::pages::time_page.dart::_TimePageState" o-- "flutter::src::material::tab_controller.dart::TabController"
+"smart_light::pages::time_page.dart::_TimePageState" o-- "smart_light::service::shared_preferences_service.dart::SharedPreferencesService"
+"flutter::src::widgets::ticker_provider.dart::SingleTickerProviderStateMixin" <|-- "smart_light::pages::time_page.dart::_TimePageState"
+
+class "smart_light::pages::user_page.dart::UserPage" {
+  +State<StatefulWidget*>* createState()
+}
+
+class "smart_light::pages::user_page.dart::UserPageState" {
+  +Widget* build()
+}
+
+class "smart_light::service::arduino::ArduinoSocketService.dart::ArduinoSocketService" {
+  +Socket* socket
+  +Future<void>* sendColor()
+  +Future<void>* initConnection()
+  +void endConnection()
+}
+
+"smart_light::service::arduino::ArduinoSocketService.dart::ArduinoSocketService" o-- "dart::io::Socket"
+
+class "smart_light::service::arduino::bluetooth_command_service.dart::BluetoothCommandService" {
+  -BluetoothConnection* _connection
+  +void alarm()
+  +void stopAlarm()
+  +void color()
+  +void power()
+  +void timer()
+  -Future<void>* _executeCommand()
+  +void brightness()
+  +void auto()
+  +void time()
+  +void read()
+}
+
+"smart_light::service::arduino::bluetooth_command_service.dart::BluetoothCommandService" o-- "flutter_bluetooth_serial::flutter_bluetooth_serial.dart::BluetoothConnection"
+"smart_light::service::arduino::CommandService.dart::CommandService" <|-- "smart_light::service::arduino::bluetooth_command_service.dart::BluetoothCommandService"
+
+class "smart_light::service::arduino::CommandService.dart::CommandService" {
+  +void power()
+  +void auto()
+  +void time()
+  +void timer()
+  +void alarm()
+  +void brightness()
+  +void stopAlarm()
+  +void color()
+  +void read()
+}
+
+class "smart_light::service::arduino::mqtt_command_service.dart::MQTTCommandService" {
+  +void alarm()
+  +void auto()
+  +void brightness()
+  +void color()
+  +void power()
+  +void read()
+  +void stopAlarm()
+  +void time()
+  +void timer()
+  -Future<void>* _executeCommand()
+}
+
+"smart_light::service::arduino::CommandService.dart::CommandService" <|-- "smart_light::service::arduino::mqtt_command_service.dart::MQTTCommandService"
+
+class "smart_light::service::bluetooth_connection_service.dart::BluetoothConnectionService" {
+  -BluetoothDevice* _bluetoothDevice
+  -BluetoothConnection* _connection
+  {static} -BluetoothConnectionService* _bluetoothConnectionService
+  -SharedPreferencesService* _sharedPreferencesService
+  +BluetoothConnection* connection
+  +BluetoothDevice* bluetoothDevice
+  +Future<BluetoothConnection*>* connect()
+  +Future<BluetoothConnection*>* connectToSavedDevice()
+  {static} +BluetoothConnectionService* instance()
+}
+
+"smart_light::service::bluetooth_connection_service.dart::BluetoothConnectionService" o-- "flutter_bluetooth_serial::flutter_bluetooth_serial.dart::BluetoothDevice"
+"smart_light::service::bluetooth_connection_service.dart::BluetoothConnectionService" o-- "flutter_bluetooth_serial::flutter_bluetooth_serial.dart::BluetoothConnection"
+"smart_light::service::bluetooth_connection_service.dart::BluetoothConnectionService" o-- "smart_light::service::bluetooth_connection_service.dart::BluetoothConnectionService"
+"smart_light::service::bluetooth_connection_service.dart::BluetoothConnectionService" o-- "smart_light::service::shared_preferences_service.dart::SharedPreferencesService"
+
+class "smart_light::service::shared_preferences_service.dart::SharedPreferencesService" {
+  {static} -SharedPreferences* _sharedPreferences
+  {static} -SharedPreferencesService* _sharedPreferencesService
+  {static} +SharedPreferencesService* getInstance()
+  {static} +Future<SharedPreferencesService*>* getInstanceAsync()
+  {static} -dynamic _initPreferences()
+  +void putObject()
+  +Map<String*, dynamic>* getObject()
+  +List<dynamic>* getObjects()
+  +void putString()
+  +String* getString()
+  +void remove()
+  +void clear()
+}
+
+"smart_light::service::shared_preferences_service.dart::SharedPreferencesService" o-- "shared_preferences::shared_preferences.dart::SharedPreferences"
+"smart_light::service::shared_preferences_service.dart::SharedPreferencesService" o-- "smart_light::service::shared_preferences_service.dart::SharedPreferencesService"
+
+class "smart_light::service::smart_light_service.dart::SmartLightService" {
+  {static} +String* MAIN_URL
+  {static} +String* LOGIN_URL
+  {static} +String* USER_URL
+  {static} +String* USER_OPTION_URL
+  {static} -SharedPreferencesService* _sharedPreferencesService
+  +Future<dynamic>* login()
+  +Future<dynamic>* createAccount()
+  +Future<dynamic>* saveOption()
+  +Future<List<Option*>*>* getOptions()
+}
+
+"smart_light::service::smart_light_service.dart::SmartLightService" o-- "smart_light::service::shared_preferences_service.dart::SharedPreferencesService"
+
+class "smart_light::service::util_service.dart::UtilService" {
+  {static} -BluetoothConnectionService* _bluetoothService
+  {static} +Future<BluetoothCommandService*>* connectToBluetooth()
+  {static} +dynamic loadFuture()
+}
+
+"smart_light::service::util_service.dart::UtilService" o-- "smart_light::service::bluetooth_connection_service.dart::BluetoothConnectionService"
+
+class "smart_light::utils::route_generator.dart::RouteGenerator" {
+  {static} +Route<dynamic>* generateRoute()
+}
+
+class "smart_light::utils::util_service.dart::UtilService" {
+  {static} +Color* getColorFromHex()
+  {static} +void addTimeDateTime()
+}
+
+
+@enduml

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_light/entity/CreateAccountDto.dart';
+import 'package:smart_light/enums/gender.dart';
 import 'package:smart_light/service/smart_light_service.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -16,6 +17,8 @@ class RegisterPageState extends State<RegisterPage> {
 
   // static SharedPreferencesService _sharedPreferencesService;
   String _email;
+  Gender _gender;
+  int _age;
   String _firstPassword;
   String _secondPassword;
   String _exceptionMessage = '';
@@ -61,6 +64,76 @@ class RegisterPageState extends State<RegisterPage> {
                         _email = value;
                         return null;
                       },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 25),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      // crossAxisAlignment: CrossAxisAlignment.baseline,
+                      children: [
+                        Container(
+                          constraints: BoxConstraints(maxWidth: 150),
+                          child: DropdownButtonFormField(
+                            value: _age,
+                            hint: Text(
+                              'Оберіть вік',
+                            ),
+                            isExpanded: true,
+                            items: List.generate(
+                              100,
+                              (index) => DropdownMenuItem(
+                                value: index + 1,
+                                child: Text(
+                                  (index + 1).toString(),
+                                ),
+                              ),
+                            ),
+                            onChanged: (value) {
+                              _age = value;
+                            },
+                            validator: (int value) {
+                              if (value == null) {
+                                return 'Поле не може бути пустим';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                        Container(
+                          constraints: BoxConstraints(maxWidth: 150),
+                          child: DropdownButtonFormField(
+                            value: _gender,
+                            hint: Text(
+                              'Оберіть стать',
+                            ),
+                            isExpanded: true,
+                            items: <DropdownMenuItem>[
+                              DropdownMenuItem(
+                                value: Gender.MALE,
+                                child: Text(
+                                  "Чоловік",
+                                ),
+                              ),
+                              DropdownMenuItem(
+                                value: Gender.FEMALE,
+                                child: Text(
+                                  "Жінка",
+                                ),
+                              ),
+                            ],
+                            onChanged: (value) {
+                              _gender = value;
+                            },
+                            validator: (value) {
+                              if (value == null) {
+                                return 'Поле не може бути пустим';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   Padding(
@@ -139,13 +212,17 @@ class RegisterPageState extends State<RegisterPage> {
   Future<void> _register() async {
     CreateAccountDto createAccountDto = CreateAccountDto()
       ..email = _email
+      ..age = _age
+      ..gender = _gender
       ..password = _secondPassword;
     var response = await smartLightService.createAccount(createAccountDto);
     if (response.statusCode == 200) {
       Navigator.of(context).pop();
     } else {
       setState(() {
-        _exceptionMessage = jsonDecode(response.body)['message'];
+        _exceptionMessage = jsonDecode(response.body)['message'] == null
+            ? "Не вдалося зареєструвати"
+            : jsonDecode(response.body)['message'];
       });
     }
   }

@@ -1,10 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:smart_light/entity/Option.dart';
-import 'package:smart_light/service/arduino/bluetooth_command_service.dart';
-import 'package:smart_light/service/bluetooth_connection_service.dart';
 import 'package:smart_light/service/smart_light_service.dart';
 
 class OptionsPage extends StatefulWidget {
@@ -16,29 +13,29 @@ class _OptionsPageState extends State<OptionsPage> {
   Future<List<Option>> _options;
   SmartLightService _smartLightService = SmartLightService();
 
-  BluetoothConnectionService _bluetoothService =
-  BluetoothConnectionService.instance();
-  BluetoothCommandService _bluetoothCommandService;
+  // BluetoothConnectionService _bluetoothService =
+  // BluetoothConnectionService.instance();
+  // BluetoothCommandService _bluetoothCommandService;
 
 
   @override
   void initState() {
     super.initState();
-    _bluetoothService = BluetoothConnectionService.instance();
-    BluetoothConnection connection = _bluetoothService.connection;
-    if (connection == null) {
-      Fluttertoast.showToast(
-          msg: "Не вдалося під'єднатися!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 2,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-          fontSize: 16.0);
-    } else {
-      _bluetoothCommandService = BluetoothCommandService(connection);
-      _getOptions();
-    }
+    // _bluetoothService = BluetoothConnectionService.instance();
+    // BluetoothConnection connection = _bluetoothService.connection;
+    // if (connection == null) {
+    //   Fluttertoast.showToast(
+    //       msg: "Не вдалося під'єднатися!",
+    //       toastLength: Toast.LENGTH_SHORT,
+    //       gravity: ToastGravity.BOTTOM,
+    //       timeInSecForIosWeb: 2,
+    //       backgroundColor: Colors.red,
+    //       textColor: Colors.white,
+    //       fontSize: 16.0);
+    // } else {
+    //   // _bluetoothCommandService = BluetoothCommandService(connection);
+    //   _getOptions();
+    // }
   }
 
   @override
@@ -67,7 +64,7 @@ class _OptionsPageState extends State<OptionsPage> {
                           options[index].lightSetting.color),
                     ),
                     onPressed: () {
-                      _bluetoothCommandService.color(options[index].lightSetting.color);
+                      // _bluetoothCommandService.color(options[index].lightSetting.color);
                     },
                     child: Center(
                       child: new GridTile(

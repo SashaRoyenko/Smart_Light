@@ -1,31 +1,75 @@
 import 'dart:ui';
 
+import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:smart_light/entity/Device.dart';
 import 'package:smart_light/service/arduino/CommandService.dart';
 
-class MQTTCommandService implements CommandService{
+import '../shared_preferences_service.dart';
+import 'mqtt_service.dart';
+
+class MQTTCommandService implements CommandService {
+  static final mqttService = MQTTService.instance;
+  var topic = "";
+
+  SharedPreferencesService _sharedPreferencesService;
+
+
+  MQTTCommandService._() {
+    _sharedPreferencesService = SharedPreferencesService.getInstance();
+  }
+
+  static final instance = MQTTCommandService._();
+
+  Future<void> _executeCommand(String command) async {
+    Device device = Device.fromJson(
+        _sharedPreferencesService.getObject("active_device"));
+    if (device == null || device.id == null) {
+      Fluttertoast.showToast(
+          msg: "Не обрано пристрій",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 2,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0);
+    } else {
+      topic = device.id + "/control";
+      mqttService.publishMessage(topic, command);
+    }
+  }
+
   @override
   void alarm(DateTime time) {
     // TODO: implement alarm
   }
 
   @override
-  void auto() {
-    // TODO: implement auto
+  void auto(int isAuto) {
+    _executeCommand("auto $isAuto");
   }
 
   @override
   void brightness(int brightness) {
-    // TODO: implement brightness
+    String command = "brightness $brightness";
+    _executeCommand(command);
   }
 
   @override
-  void color(Color color) {
-    // TODO: implement color
+  void light(Color color) {
+    String command = "light " +
+        color.red.toString() +
+        " " +
+        color.green.toString() +
+        " " +
+        color.blue.toString() +
+        "\n";
+    _executeCommand(command);
   }
 
   @override
-  void power() {
-    // TODO: implement power
+  void power(int power) {
+    _executeCommand("power $power");
   }
 
   @override
@@ -39,32 +83,37 @@ class MQTTCommandService implements CommandService{
   }
 
   @override
-  void time(DateTime dateTime) {
-    // TODO: implement time
+  void temperature(int temperature) {
+    String command = "temperature $temperature";
+    _executeCommand(command);
   }
 
   @override
   void timer(DateTime time, int isOn) {
-    // TODO: implement timer
+    String command = "timer " +
+        time.hour.toString() +
+        " " +
+        time.minute.toString() +
+        " " +
+        time.second.toString() +
+        " " +
+        isOn.toString();
+
+    _executeCommand(command);
   }
 
-  Future<void> _executeCommand(String command) async {
-    // if (_connection != null) {
-    //   if (!_connection.isConnected) {
-    //     _connection = (await UtilService.connectToBluetooth())._connection;
-    //   }
-    //   _connection.output.add(utf8.encode(command + "\r\n"));
-    //   _connection.output.allSent;
-    // } else {
-    //   Fluttertoast.showToast(
-    //       msg: "Не вдалося під'єднатися!",
-    //       toastLength: Toast.LENGTH_SHORT,
-    //       gravity: ToastGravity.BOTTOM,
-    //       timeInSecForIosWeb: 2,
-    //       backgroundColor: Colors.red,
-    //       textColor: Colors.white,
-    //       fontSize: 16.0);
-    // }
+  @override
+  void utc(int utc) {
+    String command = "utc $utc";
+    _executeCommand(command);
   }
 
+  void healthCheck() {
+    _executeCommand("health");
+  }
+
+  @override
+  void user(String userId, int age, int gender) {
+    _executeCommand("user $userId $age $gender");
+  }
 }

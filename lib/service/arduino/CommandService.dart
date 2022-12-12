@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 class CommandService {
-  void power() {}
+  void power(int power) {}
 
-  void auto() {}
-
-  void time(DateTime dateTime) {}
+  void auto(int isAuto) {}
 
   void timer(DateTime time, int isOn) {}
+
+  void utc(int utc) {}
 
   void alarm(DateTime time) {}
 
@@ -15,7 +15,11 @@ class CommandService {
 
   void stopAlarm(){}
 
-  void color(Color color) {}
+  void light(Color color) {}
+
+  void temperature(int temperature) {}
 
   void read() {}
+
+  void user(String userId, int age, int gender) {}
 }

@@ -7,7 +7,7 @@ import 'package:smart_light/entity/Option.dart';
 import 'package:smart_light/service/shared_preferences_service.dart';
 
 class SmartLightService {
-  static const String MAIN_URL = "http://192.168.0.199:5624/smart-light";
+  static const String MAIN_URL = "http://192.168.0.191:5624/smart-light";
   static const String LOGIN_URL = MAIN_URL + "/login";
   static const String USER_URL = MAIN_URL + "/users";
   static const String USER_OPTION_URL = USER_URL + "/options";
